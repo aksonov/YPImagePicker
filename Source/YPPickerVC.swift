@@ -75,9 +75,12 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
             videoVC = YPVideoCaptureVC()
             videoVC?.didCaptureVideo = { [weak self] videoURL in
                 self?.didSelectItems?([YPMediaItem
-                    .video(v: YPMediaVideo(thumbnail: thumbnailFromVideoPath(videoURL),
-                                           videoURL: videoURL,
-                                           fromCamera: true))])
+                    .video(v: YPMediaVideo(
+                        thumbnail: thumbnailFromVideoPath(
+                            videoURL,
+                            thumbnailSelection: YPConfig.video.thumbnailSelection),
+                        videoURL: videoURL,
+                        fromCamera: true))])
             }
         }
         
