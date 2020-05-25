@@ -19,15 +19,28 @@ func deviceForPosition(_ p: AVCaptureDevice.Position) -> AVCaptureDevice? {
     return nil
 }
 
-func thumbnailFromVideoPath(_ path: URL) -> UIImage {
+func thumbnailFromVideoPath(_ path: URL, thumbnailSelection: ThumbnailSelection) -> UIImage {
     let asset = AVURLAsset(url: path, options: nil)
     let gen = AVAssetImageGenerator(asset: asset)
     gen.appliesPreferredTrackTransform = true
-    let time = CMTimeMakeWithSeconds(0.0, preferredTimescale: 600)
+    
+    let time: Double
+    switch thumbnailSelection {
+    case .start:
+        time = 0.0
+    case .middle:
+        time = asset.duration.seconds / 2
+    case .end:
+        time = asset.duration.seconds
+    case .time(let value):
+        time = asset.duration.seconds > value ? value : asset.duration.seconds
+    }
+    
+    let cmTime = CMTimeMakeWithSeconds(time, preferredTimescale: 600)
     var actualTime = CMTimeMake(value: 0, timescale: 0)
     let image: CGImage
     do {
-        image = try gen.copyCGImage(at: time, actualTime: &actualTime)
+        image = try gen.copyCGImage(at: cmTime, actualTime: &actualTime)
         let thumbnail = UIImage(cgImage: image)
         return thumbnail
     } catch { }

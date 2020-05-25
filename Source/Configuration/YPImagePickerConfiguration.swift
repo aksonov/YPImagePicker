@@ -227,6 +227,10 @@ public struct YPConfigVideo {
     /// The minimum duration allowed for the trimming.
     /// The handles won't pan further if the minimum duration is attained.
     public var trimmerMinDuration: Double = 3.0
+    
+    /// The position where the thumbnail from video will be picked.
+    /// Defaults to start seconds.
+    public var thumbnailSelection = ThumbnailSelection.start
 }
 
 /// Encapsulates gallery specific settings.
@@ -239,4 +243,8 @@ public enum YPlibraryMediaType {
     case photo
     case video
     case photoAndVideo
+}
+
+public enum ThumbnailSelection {
+    case start, middle, end, time(Double)
 }
