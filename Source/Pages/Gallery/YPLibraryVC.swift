@@ -422,7 +422,7 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
     
     private func checkVideoLengthAndCrop(for asset: PHAsset,
                                          withCropRect: CGRect? = nil,
-                                         callback: @escaping (_ videoURL: URL) -> Void) {
+                                         callback: @escaping (_ videoURL: URL?) -> Void) {
         if fitsVideoLengthLimits(asset: asset) == true {
             delegate?.libraryViewDidTapNext()
             let normalizedCropRect = withCropRect ?? DispatchQueue.main.sync { v.currentCropRect() }
@@ -474,12 +474,15 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
                         
                     case .video:
                         self.checkVideoLengthAndCrop(for: asset.asset, withCropRect: asset.cropRect) { videoURL in
-                            let videoItem = YPMediaVideo(
-                                thumbnail: thumbnailFromVideoPath(
+                            if let videoURL = videoURL {
+                                let videoItem = YPMediaVideo(thumbnail: thumbnailFromVideoPath(
                                     videoURL,
-                                    thumbnailSelection: YPConfig.video.thumbnailSelection),
-                                videoURL: videoURL, asset: asset.asset)
-                            resultMediaItems.append(YPMediaItem.video(v: videoItem))
+                                    thumbnailSelection: YPConfig.video.thumbnailSelection
+                                ), videoURL: videoURL, asset: asset.asset)
+                                resultMediaItems.append(YPMediaItem.video(v: videoItem))
+                            } else {
+                                print("YPLibraryVC -> selectedMedia -> Problems with fetching videoURL.")
+                            }
                             asyncGroup.leave()
                         }
                     default:
@@ -491,7 +494,7 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
                     multipleItemsCallback(resultMediaItems)
                     self.delegate?.libraryViewFinishedLoading()
                 }
-        } else {
+            } else {
                 let asset = selectedAssets.first!.asset
                 switch asset.mediaType {
                 case .audio, .unknown:
@@ -499,13 +502,16 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
                 case .video:
                     self.checkVideoLengthAndCrop(for: asset, callback: { videoURL in
                         DispatchQueue.main.async {
-                            self.delegate?.libraryViewFinishedLoading()
-                            let video = YPMediaVideo(
-                                thumbnail: thumbnailFromVideoPath(
+                            if let videoURL = videoURL {
+                                self.delegate?.libraryViewFinishedLoading()
+                                let video = YPMediaVideo(thumbnail: thumbnailFromVideoPath(
                                     videoURL,
-                                    thumbnailSelection: YPConfig.video.thumbnailSelection),
-                                videoURL: videoURL, asset: asset)
-                            videoCallback(video)
+                                    thumbnailSelection: YPConfig.video.thumbnailSelection
+                                ), videoURL: videoURL, asset: asset)
+                                videoCallback(video)
+                            } else {
+                                print("YPLibraryVC -> selectedMedia -> Problems with fetching videoURL.")
+                            }
                         }
                     })
                 case .image:
